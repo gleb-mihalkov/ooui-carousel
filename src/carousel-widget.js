@@ -410,4 +410,12 @@ export default class CarouselWidget extends Widget {
   back(offset = 1) {
     this.seek(offset * -1);
   }
+
+  /**
+   * Возвращает true, если в данный момент происходит анимация смены слайдов.
+   * @return {Boolean} True или false.
+   */
+  get isChanging() {
+    return !!this._transition;
+  }
 }
