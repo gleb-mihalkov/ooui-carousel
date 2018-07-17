@@ -161,11 +161,12 @@ export default class CarouselWidget extends Widget {
   }
 
   /**
-   * Делает активным следующий слайд, не запуская анимацию смены слайдов.
-   * @param {Number}  index           Номер нового активного слайда.
-   * @param {Boolean} [isEvents=true] True, если следует генерировать события.
+   * Возвращает объект, содержащий данные для перехода на слайд с указанным
+   * номером.
+   * @param  {Number} index Номер слайда.
+   * @return {Object}       Объек с параметрами.
    */
-  _setIndex(index, isEvents = true) {
+  _getIndexState(index) {
     if (this._transition) {
       this.isDebug
         && console.warn(`Cannot change active slide while animation is going`);
@@ -186,6 +187,32 @@ export default class CarouselWidget extends Widget {
       this.isDebug && console.warn(`Next and current slides are equal`);
       return;
     }
+
+    let direction = currentIndex < nextIndex
+      ? CarouselDirection.FORWARD : CarouselDirection.BACKWARD;
+
+    return {
+      currentIndex,
+      currentSlide,
+      nextIndex,
+      nextSlide,
+      direction
+    };
+  }
+
+  /**
+   * Делает активным следующий слайд, не запуская анимацию смены слайдов.
+   * @param {Number}  index           Номер нового активного слайда.
+   * @param {Boolean} [isEvents=true] True, если следует генерировать события.
+   */
+  _setIndex(index, isEvents = true) {
+    let state = this._getIndexState(index);
+    if (!state) return;
+
+    let currentIndex = state.currentIndex;
+    let currentSlide = state.currentSlide;
+    let nextIndex = state.nextIndex;
+    let nextSlide = state.nextSlide;
 
     if (isEvents) {
       let before = new CarouselBeforeChangeEvent(this, nextIndex);
@@ -216,26 +243,13 @@ export default class CarouselWidget extends Widget {
    * @param {String} direction Направление смены слайдов CarouselDirection.
    */
   _change(index, direction) {
-    if (this._transition) {
-      this.isDebug
-        && console.warn(`Cannot change active slide while animation is going`);
-      return;
-    }
+    let state = this._getIndexState(index);
+    if (!state) return;
 
-    let currentIndex = this._getIndex();
-    let currentSlide = this._getSlide(currentIndex);
-
-    let nextIndex = index;
-    let nextSlide = this._getSlide(nextIndex);
-
-    if (!nextSlide) {
-      throw new Error(`Index ${nextIndex} is out of range`);
-    }
-
-    if (nextIndex == currentIndex) {
-      this.isDebug && console.warn(`Next and current slides are equal`);
-      return;
-    }
+    let currentIndex = state.currentIndex;
+    let currentSlide = state.currentSlide;
+    let nextIndex = state.nextIndex;
+    let nextSlide = state.nextSlide;
 
     let before = new CarouselBeforeChangeEvent(this, nextIndex);
 
@@ -258,10 +272,7 @@ export default class CarouselWidget extends Widget {
       return;
     }
 
-    if (!direction) {
-      direction = currentIndex < nextIndex
-        ? CarouselDirection.FORWARD : CarouselDirection.BACKWARD;
-    }
+    direction = direction || state.direction;
 
     let transitionClass = direction == CarouselDirection.FORWARD
       ? this._forwardClass
