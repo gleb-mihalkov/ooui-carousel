@@ -293,7 +293,7 @@ export default class CarouselWidget extends Widget {
   _getOffsetIndex(offset) {
     return this.isLoop
       ? this._getOffsetLoopIndex(offset)
-      : this._getOffsetDirectIndex(offset);
+      : this._getOffsetLinearIndex(offset);
   }
 
   /**
@@ -317,7 +317,7 @@ export default class CarouselWidget extends Widget {
    * условии, что карусель не зациклена.
    * @param {Number} offset Смещение относительно текущего активного слайда.
    */
-  _getOffsetDirectIndex(offset) {
+  _getOffsetLinearIndex(offset) {
     let index = this._getIndex() + offset;
     let count = this._getCount();
 
