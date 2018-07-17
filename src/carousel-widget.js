@@ -144,14 +144,6 @@ export default class CarouselWidget extends Widget {
   }
 
   /**
-   * Возвращает номер активного слайда.
-   * @return {Number} Номер слайда.
-   */
-  _getIndex() {
-    return this._index;
-  }
-
-  /**
    * Возвращает слайд по его номеру.
    * @param  {Number}      index Номер слайда.
    * @return {HTMLElement}       Слайд.
@@ -161,11 +153,69 @@ export default class CarouselWidget extends Widget {
   }
 
   /**
+   * Возвращает номер активного слайда.
+   * @return {Number} Номер слайда.
+   */
+  _getIndex() {
+    return this._index;
+  }
+
+  /**
+   * Делает активным следующий слайд, не запуская анимацию смены слайдов.
+   * @param {Number}  index           Номер нового активного слайда.
+   * @param {Boolean} [isEvents=true] True, если следует генерировать события.
+   */
+  _setIndex(index, isEvents = true) {
+    if (this._transition) {
+      this.isDebug
+        && console.warn(`Cannot change active slide while animation is going`);
+      return;
+    }
+
+    let currentIndex = this._getIndex();
+    let currentSlide = this._getSlide(currentIndex);
+
+    let nextIndex = index;
+    let nextSlide = this._getSlide(nextIndex);
+
+    if (!nextSlide) {
+      throw new Error(`Index ${nextIndex} is out of range`);
+    }
+
+    if (nextIndex == currentIndex) {
+      this.isDebug && console.warn(`Next and current slides are equal`);
+      return;
+    }
+
+    if (isEvents) {
+      let before = new CarouselBeforeChangeEvent(this, nextIndex);
+
+      if (!before.dispatch()) {
+        return;
+      }
+
+      let change = new CarouselChangeEvent(this, currentIndex);
+      change.dispatch();
+    }
+
+    currentSlide.classList.remove(this._activeClass);
+    nextSlide.classList.add(this._activeClass);
+
+    this._index = nextIndex;
+
+    if (isEvents) {
+      let after = new CarouselAfterChangeEvent(this, currentIndex);
+      after.dispatch();
+    }
+  }
+
+
+  /**
    * Делает активным слайд с указанным номером.
    * @param {Number} index     Номер нового активного слайда.
    * @param {String} direction Направление смены слайдов CarouselDirection.
    */
-  _setIndex(index, direction) {
+  _change(index, direction) {
     if (this._transition) {
       this.isDebug
         && console.warn(`Cannot change active slide while animation is going`);
@@ -299,12 +349,22 @@ export default class CarouselWidget extends Widget {
   }
 
   /**
-   * Задает номер нового активного слайда.
+   * Задает номер нового активного слайда, не запуская анимацию смены слайдов,
+   * но генерируя специальные события.
    * @param  {Number} index Номер слайда.
    * @return {void}
    */
   set index(index) {
     this._setIndex(index);
+  }
+
+  /**
+   * Вызывает переход к слайду с указанным номером.
+   * @param  {Number} index Номер слайда.
+   * @return {void}
+   */
+  to(index) {
+    this._change(index);
   }
 
   /**
@@ -319,7 +379,7 @@ export default class CarouselWidget extends Widget {
       ? CarouselDirection.BACKWARD
       : CarouselDirection.FORWARD;
 
-    this._setIndex(index, direction);
+    this._change(index, direction);
   }
 
   /**
