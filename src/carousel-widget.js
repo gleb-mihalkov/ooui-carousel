@@ -220,9 +220,6 @@ export default class CarouselWidget extends Widget {
       if (!before.dispatch()) {
         return;
       }
-
-      let change = new CarouselChangeEvent(this, currentIndex);
-      change.dispatch();
     }
 
     currentSlide.classList.remove(this._activeClass);
@@ -231,6 +228,9 @@ export default class CarouselWidget extends Widget {
     this._index = nextIndex;
 
     if (isEvents) {
+      let change = new CarouselChangeEvent(this, currentIndex);
+      change.dispatch();
+
       let after = new CarouselAfterChangeEvent(this, currentIndex);
       after.dispatch();
     }
@@ -257,13 +257,13 @@ export default class CarouselWidget extends Widget {
       return;
     }
 
-    let change = new CarouselChangeEvent(this, currentIndex);
-    change.dispatch();
-
     currentSlide.classList.remove(this._activeClass);
     nextSlide.classList.add(this._activeClass);
 
     this._index = nextIndex;
+
+    let change = new CarouselChangeEvent(this, currentIndex);
+    change.dispatch();
 
     let after = new CarouselAfterChangeEvent(this, currentIndex);
 
