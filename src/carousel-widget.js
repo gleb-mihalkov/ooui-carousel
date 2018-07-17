@@ -412,6 +412,22 @@ export default class CarouselWidget extends Widget {
   }
 
   /**
+   * Вызывает переход на первый слайд.
+   * @return {void}
+   */
+  first() {
+    this._change(0);
+  }
+
+  /**
+   * Вызывает переход на последний слайд.
+   * @return {void}
+   */
+  last() {
+    this._change(this._getCount() - 1);
+  }
+
+  /**
    * Возвращает true, если в данный момент происходит анимация смены слайдов.
    * @return {Boolean} True или false.
    */
